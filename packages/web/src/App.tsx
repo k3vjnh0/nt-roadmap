@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Map } from './components/Map';
 import { Sidebar } from './components/Sidebar';
 import { ReportForm } from './components/ReportForm';
+import { FilterPanel } from './components/FilterPanel';
 import { useAppStore } from './store/appStore';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Map />
       </div>
       <ReportForm />
+      <FilterPanel />
     </div>
   );
 }

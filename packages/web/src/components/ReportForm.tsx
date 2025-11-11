@@ -72,6 +72,15 @@ export function ReportForm() {
           </button>
         </div>
 
+        {/* Demo Notice */}
+        <div className="px-4 pt-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+            <p className="text-xs text-blue-800">
+              ℹ️ <strong>Demo Feature:</strong> User reports are not stored permanently. This app displays real incidents from NT Road Report API.
+            </p>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

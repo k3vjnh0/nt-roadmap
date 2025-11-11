@@ -9,6 +9,7 @@ interface AppState {
   selectedIncident: Incident | null;
   filters: Partial<FilterOptions>;
   isLoadingIncidents: boolean;
+  lastRefreshTime: Date | null;
 
   // Map
   userLocation: Location | null;
@@ -71,6 +72,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     status: [],
   },
   isLoadingIncidents: false,
+  lastRefreshTime: null,
 
   userLocation: null,
   mapCenter: DEFAULT_LOCATION,
@@ -143,6 +145,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const incidents = await incidentService.getIncidents(get().filters);
       get().setIncidents(incidents);
+      set({ lastRefreshTime: new Date() });
     } catch (error) {
       console.error('Error fetching incidents:', error);
     } finally {

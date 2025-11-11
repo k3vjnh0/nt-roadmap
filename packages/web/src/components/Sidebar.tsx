@@ -15,6 +15,7 @@ export function Sidebar() {
     toggleIncidentType,
     isIncidentTypeVisible,
     focusOnIncident,
+    lastRefreshTime,
   } = useAppStore();
 
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
@@ -62,20 +63,33 @@ export function Sidebar() {
         <div className="flex gap-2">
           <button
             onClick={toggleFilters}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center justify-center gap-2 font-medium"
+            title="Filter incidents by severity, status, and date"
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center justify-center gap-2 font-medium transition-colors"
           >
             <Filter className="w-4 h-4" />
             Filters
           </button>
 
           <button
-            onClick={refreshIncidents}
+            onClick={async () => {
+              await refreshIncidents();
+            }}
             disabled={isLoadingIncidents}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center justify-center gap-2 disabled:opacity-50 font-medium"
+            title={isLoadingIncidents ? "Refreshing..." : "Refresh incident data from NT Road Report"}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center justify-center gap-2 disabled:opacity-50 font-medium transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${isLoadingIncidents ? 'animate-spin' : ''}`} />
-            Refresh
+            {isLoadingIncidents ? 'Syncing...' : 'Refresh'}
           </button>
+        </div>
+        
+        {/* Last Updated Info */}
+        <div className="mt-2 text-xs text-gray-500 text-center">
+          {lastRefreshTime ? (
+            <span>Last updated: {new Date(lastRefreshTime).toLocaleTimeString()}</span>
+          ) : (
+            <span>Auto-refreshes every 5 minutes</span>
+          )}
         </div>
       </div>
 
