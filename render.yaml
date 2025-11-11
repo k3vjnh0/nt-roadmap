@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: nt-roadmap-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd packages/server && npm install && npm run build
+    startCommand: cd packages/server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: NT_ROAD_REPORT_API
+        value: https://roadreport.nt.gov.au/api/Obstruction/GetAll
+      - key: OSRM_BASE_URL
+        value: https://router.project-osrm.org
+      - key: CACHE_TTL_SECONDS
+        value: 300
+      - key: CORS_ORIGIN
+        value: "*"
