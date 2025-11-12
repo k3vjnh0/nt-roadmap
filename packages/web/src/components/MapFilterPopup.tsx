@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Filter, Check } from 'lucide-react';
+import { X, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { INCIDENT_LABELS, INCIDENT_COLORS } from '../utils/helpers';
 
@@ -10,10 +10,33 @@ interface MapFilterPopupProps {
 
 export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
   const {
+    incidents,
+    filteredIncidents,
     toggleIncidentType,
     isIncidentTypeVisible,
     visibleIncidentTypes,
+    focusOnIncident,
   } = useAppStore();
+
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+  const toggleCategory = (type: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
+  };
+
+  // Count incidents by type
+  const allIncidentCounts = incidents.reduce((acc, incident) => {
+    acc[incident.type] = (acc[incident.type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const visibleIncidentCounts = filteredIncidents.reduce((acc, incident) => {
+    acc[incident.type] = (acc[incident.type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   const popupRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -89,13 +112,13 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       const isMobile = window.innerWidth < 768;
       if (isMobile) {
         setPosition({
-          x: window.innerWidth / 2 - 175, // Center (350px width / 2)
-          y: window.innerHeight - 420, // 20px from bottom + height
+          x: window.innerWidth / 2 - 150, // Center (300px width / 2)
+          y: window.innerHeight - 500, // From bottom
         });
       } else {
         setPosition({
-          x: window.innerWidth - 370, // 20px from right + width
-          y: 80, // Below top controls
+          x: window.innerWidth - 320, // 20px from right
+          y: 20, // Top
         });
       }
     }
@@ -116,8 +139,8 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newX = Math.max(0, Math.min(window.innerWidth - 350, e.clientX - dragOffset.x));
-      const newY = Math.max(0, Math.min(window.innerHeight - 400, e.clientY - dragOffset.y));
+      const newX = Math.max(0, Math.min(window.innerWidth - 300, e.clientX - dragOffset.x));
+      const newY = Math.max(0, Math.min(window.innerHeight - 300, e.clientY - dragOffset.y));
       setPosition({ x: newX, y: newY });
     };
 
@@ -186,8 +209,8 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: '350px',
-        maxHeight: 'min(90vh, 600px)',
+        width: '300px',
+        maxHeight: 'min(85vh, 500px)',
         zIndex: 10000,
         transform: isOpen ? 'scale(1)' : 'scale(0.95)',
         opacity: isOpen ? 1 : 0,
@@ -200,99 +223,142 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       {/* Header - Draggable */}
       <div
         ref={dragHandleRef}
-        className={`flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg ${
+        className={`flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >
         <h2
           id="filter-popup-title"
-          className="text-lg font-bold text-gray-900 flex items-center gap-2"
+          className="text-base font-bold text-gray-900 flex items-center gap-2"
         >
-          <Filter className="w-5 h-5 text-blue-600" />
-          Filter Incidents
+          <Filter className="w-4 h-4 text-blue-600" />
+          Filters
         </h2>
         <button
           onClick={onClose}
           className="p-1 hover:bg-white rounded-md transition-colors"
           aria-label="Close filter popup"
         >
-          <X className="w-5 h-5 text-gray-500" />
+          <X className="w-4 h-4 text-gray-500" />
         </button>
       </div>
 
       {/* Quick Actions */}
-      <div className="p-3 border-b border-gray-100 bg-gray-50 flex gap-2">
+      <div className="p-2 border-b border-gray-100 bg-gray-50 flex gap-1">
         <button
           onClick={handleSelectAll}
           disabled={allSelected}
-          className="flex-1 px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 px-2 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          <Check className="w-4 h-4 inline mr-1" />
-          Select All
+          All
         </button>
         <button
           onClick={handleClearAll}
           disabled={noneSelected}
-          className="flex-1 px-3 py-2 text-sm font-medium border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 px-2 py-1.5 text-xs font-medium border border-gray-300 text-gray-700 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           Clear
         </button>
       </div>
 
-      {/* Content - Scrollable */}
-      <div className="p-4 overflow-y-auto" style={{ maxHeight: 'min(60vh, 400px)' }}>
-        <div className="space-y-2">
-          {Object.entries(INCIDENT_LABELS).map(([type, label]) => {
-            const isVisible = isIncidentTypeVisible(type);
-            const color = INCIDENT_COLORS[type as keyof typeof INCIDENT_COLORS];
+      {/* Content - Scrollable with compact incident list */}
+      <div className="overflow-y-auto" style={{ maxHeight: 'min(70vh, 400px)' }}>
+        {Object.entries(INCIDENT_LABELS).map(([type, label]) => {
+          const totalCount = allIncidentCounts[type] || 0;
+          const visibleCount = visibleIncidentCounts[type] || 0;
+          const isTypeVisible = isIncidentTypeVisible(type);
+          const color = INCIDENT_COLORS[type as keyof typeof INCIDENT_COLORS];
+          const isExpanded = expandedCategories[type];
 
-            return (
-              <label
-                key={type}
-                className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                  isVisible
-                    ? 'border-blue-400 bg-blue-50 shadow-sm'
-                    : 'border-gray-200 bg-white hover:bg-gray-50'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={isVisible}
-                  onChange={() => handleToggle(type)}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                />
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm"
-                  style={{ backgroundColor: color }}
+          if (totalCount === 0) return null;
+
+          return (
+            <div key={type} className="border-b border-gray-100">
+              {/* Category Header */}
+              <div className="flex items-center hover:bg-gray-50">
+                <button
+                  onClick={() => toggleCategory(type)}
+                  className="flex items-center gap-2 flex-1 p-2 text-left"
                 >
-                  <span className="text-white text-lg">
-                    {type === 'road_closure' && '⛔'}
-                    {type === 'flood' && '🌊'}
-                    {type === 'accident' && '🚗'}
-                    {type === 'bushfire' && '🔥'}
-                    {type === 'construction' && '🚧'}
-                    {type === 'hazard' && '⚠️'}
-                    {type === 'weather' && '🌤️'}
-                    {type === 'traffic' && '🚦'}
-                    {type === 'other' && '📍'}
-                  </span>
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                  )}
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: color }}
+                  >
+                    <span className="text-white text-sm">
+                      {type === 'road_closure' && '⛔'}
+                      {type === 'flood' && '🌊'}
+                      {type === 'accident' && '🚗'}
+                      {type === 'bushfire' && '🔥'}
+                      {type === 'construction' && '🚧'}
+                      {type === 'hazard' && '⚠️'}
+                      {type === 'weather' && '🌤️'}
+                      {type === 'traffic' && '🚦'}
+                      {type === 'other' && '📍'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xs font-bold text-gray-900">{label}</h3>
+                    <p className="text-xs text-gray-600">{visibleCount} visible</p>
+                  </div>
+                </button>
+                {/* Toggle Switch */}
+                <button
+                  onClick={() => handleToggle(type)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 mr-2 ${
+                    isTypeVisible ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}
+                  title={isTypeVisible ? 'Hide on map' : 'Show on map'}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
+                      isTypeVisible ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Incidents List */}
+              {isExpanded && (
+                <div className="bg-gray-50">
+                  {filteredIncidents
+                    .filter(i => i.type === type)
+                    .map((incident) => (
+                      <button
+                        key={incident.id}
+                        onClick={() => {
+                          focusOnIncident(incident);
+                          onClose();
+                        }}
+                        className="w-full px-3 py-2 text-left hover:bg-white border-b border-gray-200 last:border-b-0 transition-colors"
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-semibold text-gray-900 truncate">
+                              {incident.title || 'Untitled'}
+                            </h4>
+                            <p className="text-xs text-gray-600 line-clamp-1">
+                              {incident.description || 'No description'}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                 </div>
-                <span className="text-sm font-medium text-gray-900 flex-1">
-                  {label}
-                </span>
-                {isVisible && (
-                  <Check className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                )}
-              </label>
-            );
-          })}
-        </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-gray-100 bg-gray-50 rounded-b-lg">
-        <p className="text-xs text-gray-600 text-center">
-          {visibleIncidentTypes.size} of {Object.keys(INCIDENT_LABELS).length} types visible
+      <div className="p-2 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+        <p className="text-xs text-gray-500 text-center">
+          {visibleIncidentTypes.size}/{Object.keys(INCIDENT_LABELS).length} types • {filteredIncidents.length} incidents
         </p>
       </div>
     </div>

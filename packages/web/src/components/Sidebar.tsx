@@ -1,41 +1,16 @@
-import { useState } from 'react';
-import { MapPin, AlertTriangle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
-import { INCIDENT_LABELS, INCIDENT_COLORS } from '../utils/helpers';
 import { RouteSearch } from './RouteSearch';
 
 export function Sidebar() {
   const {
-    incidents,
     filteredIncidents,
     isLoadingIncidents,
     refreshIncidents,
     toggleFilters,
     toggleReportForm,
-    focusOnIncident,
     lastRefreshTime,
   } = useAppStore();
-
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
-
-  const toggleCategory = (type: string) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [type]: !prev[type]
-    }));
-  };
-
-  // Count all incidents by type (not just filtered)
-  const allIncidentCounts = incidents.reduce((acc, incident) => {
-    acc[incident.type] = (acc[incident.type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  // Count visible incidents by type
-  const visibleIncidentCounts = filteredIncidents.reduce((acc, incident) => {
-    acc[incident.type] = (acc[incident.type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
 
   return (
     <div className="w-80 bg-white shadow-lg overflow-y-auto flex flex-col">
@@ -95,95 +70,14 @@ export function Sidebar() {
         <RouteSearch />
       </div>
 
-      {/* Incident List */}
-      <div className="flex-1 overflow-y-auto bg-white">
-        {Object.entries(INCIDENT_LABELS).map(([type, label]) => {
-          const totalCount = allIncidentCounts[type] || 0;
-          const visibleCount = visibleIncidentCounts[type] || 0;
-          const color = INCIDENT_COLORS[type as keyof typeof INCIDENT_COLORS];
-          
-          const isExpanded = expandedCategories[type];
-          
-          // Only show categories with incidents
-          if (totalCount === 0) return null;
-          
-          return (
-            <div key={type} className="border-b border-gray-200">
-              {/* Category Header */}
-              <button
-                onClick={() => toggleCategory(type)}
-                className="w-full p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors"
-              >
-                {/* Expand/Collapse Icon */}
-                {isExpanded ? (
-                  <ChevronUp className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                )}
-                
-                {/* Icon */}
-                <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: color }}
-                >
-                  <span className="text-white text-lg">
-                    {type === 'road_closure' && '⛔'}
-                    {type === 'flood' && '🌊'}
-                    {type === 'accident' && '🚗'}
-                    {type === 'bushfire' && '🔥'}
-                    {type === 'construction' && '🚧'}
-                    {type === 'hazard' && '⚠️'}
-                    {type === 'weather' && '🌤️'}
-                    {type === 'traffic' && '🚦'}
-                    {type === 'other' && '📍'}
-                  </span>
-                </div>
-                
-                {/* Label and Count */}
-                <div className="flex-1 text-left min-w-0">
-                  <h3 className="text-sm font-bold text-gray-900">{label}</h3>
-                  <p className="text-xs text-gray-600">
-                    {visibleCount} visible
-                  </p>
-                </div>
-              </button>
-              
-              {/* Incidents List - Only show if expanded and has incidents */}
-              {isExpanded && totalCount > 0 && (
-                <div className="bg-gray-50 border-t border-gray-200">
-                  {filteredIncidents
-                    .filter(i => i.type === type)
-                    .map((incident) => (
-                      <button
-                        key={incident.id}
-                        onClick={() => focusOnIncident(incident)}
-                        className="w-full px-4 py-3 text-left hover:bg-white border-b border-gray-200 last:border-b-0 transition-colors"
-                      >
-                        <div className="flex items-start gap-2">
-                          <ChevronDown className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                              {incident.title || 'Untitled Incident'}
-                            </h4>
-                            <p className="text-xs text-gray-600 line-clamp-2">
-                              {incident.description || 'No description available'}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Stats */}
-      <div className="p-4 mt-auto bg-white">
-        <div className="bg-gray-100 rounded-md p-3 border border-gray-200">
-          <p className="text-sm font-medium text-gray-900">
-            Showing {filteredIncidents.length} incident{filteredIncidents.length !== 1 ? 's' : ''}
+      {/* Info */}
+      <div className="p-4 mt-auto bg-white border-t border-gray-200">
+        <div className="text-center">
+          <p className="text-sm font-medium text-gray-900 mb-1">
+            {filteredIncidents.length} Active Incident{filteredIncidents.length !== 1 ? 's' : ''}
+          </p>
+          <p className="text-xs text-gray-600">
+            Use the map filter button to view and browse incidents
           </p>
         </div>
       </div>
