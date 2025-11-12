@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Filter, MapPin, AlertTriangle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, AlertTriangle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { INCIDENT_LABELS, INCIDENT_COLORS } from '../utils/helpers';
 import { RouteSearch } from './RouteSearch';
@@ -12,8 +12,6 @@ export function Sidebar() {
     refreshIncidents,
     toggleFilters,
     toggleReportForm,
-    toggleIncidentType,
-    isIncidentTypeVisible,
     focusOnIncident,
     lastRefreshTime,
   } = useAppStore();
@@ -66,8 +64,7 @@ export function Sidebar() {
             title="Filter incidents by severity, status, and date"
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center justify-center gap-2 font-medium transition-colors"
           >
-            <Filter className="w-4 h-4" />
-            Filters
+            Advanced Filters
           </button>
 
           <button
@@ -98,75 +95,58 @@ export function Sidebar() {
         <RouteSearch />
       </div>
 
-      {/* Layer Selector */}
+      {/* Incident List */}
       <div className="flex-1 overflow-y-auto bg-white">
         {Object.entries(INCIDENT_LABELS).map(([type, label]) => {
           const totalCount = allIncidentCounts[type] || 0;
           const visibleCount = visibleIncidentCounts[type] || 0;
-          const isTypeVisible = isIncidentTypeVisible(type);
           const color = INCIDENT_COLORS[type as keyof typeof INCIDENT_COLORS];
           
           const isExpanded = expandedCategories[type];
           
+          // Only show categories with incidents
+          if (totalCount === 0) return null;
+          
           return (
             <div key={type} className="border-b border-gray-200">
               {/* Category Header */}
-              <div className="p-4 flex items-center justify-between hover:bg-gray-50">
-                <button
-                  onClick={() => toggleCategory(type)}
-                  className="flex items-center gap-3 flex-1 text-left"
-                >
-                  {/* Expand/Collapse Icon */}
-                  {isExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                  )}
-                  
-                  {/* Icon */}
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: color + '20' }}
-                  >
-                    <div 
-                      className="w-8 h-8 rounded-full border-4 border-white flex items-center justify-center"
-                      style={{ backgroundColor: color }}
-                    >
-                      {type === 'road_closure' && <span className="text-white text-sm">⛔</span>}
-                      {type === 'flood' && <span className="text-white text-sm">🌊</span>}
-                      {type === 'accident' && <span className="text-white text-sm">🚗</span>}
-                      {type === 'bushfire' && <span className="text-white text-sm">🔥</span>}
-                      {type === 'construction' && <span className="text-white text-sm">🚧</span>}
-                      {type === 'hazard' && <span className="text-white text-sm">⚠️</span>}
-                      {type === 'weather' && <span className="text-white text-sm">🌤️</span>}
-                      {type === 'traffic' && <span className="text-white text-sm">🚦</span>}
-                      {type === 'other' && <span className="text-white text-sm">📍</span>}
-                    </div>
-                  </div>
-                  
-                  {/* Label and Count */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-gray-900">{label}</h3>
-                    <p className="text-sm text-gray-600">
-                      Displaying {isTypeVisible ? visibleCount : 0} of {totalCount}
-                    </p>
-                  </div>
-                </button>
+              <button
+                onClick={() => toggleCategory(type)}
+                className="w-full p-4 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+              >
+                {/* Expand/Collapse Icon */}
+                {isExpanded ? (
+                  <ChevronUp className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                )}
                 
-                {/* Toggle Switch */}
-                <button
-                  onClick={() => toggleIncidentType(type)}
-                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors flex-shrink-0 ml-2 ${
-                    isTypeVisible ? 'bg-red-400' : 'bg-gray-300'
-                  }`}
+                {/* Icon */}
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: color }}
                 >
-                  <span
-                    className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${
-                      isTypeVisible ? 'translate-x-7' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
+                  <span className="text-white text-lg">
+                    {type === 'road_closure' && '⛔'}
+                    {type === 'flood' && '🌊'}
+                    {type === 'accident' && '🚗'}
+                    {type === 'bushfire' && '🔥'}
+                    {type === 'construction' && '🚧'}
+                    {type === 'hazard' && '⚠️'}
+                    {type === 'weather' && '🌤️'}
+                    {type === 'traffic' && '🚦'}
+                    {type === 'other' && '📍'}
+                  </span>
+                </div>
+                
+                {/* Label and Count */}
+                <div className="flex-1 text-left min-w-0">
+                  <h3 className="text-sm font-bold text-gray-900">{label}</h3>
+                  <p className="text-xs text-gray-600">
+                    {visibleCount} visible
+                  </p>
+                </div>
+              </button>
               
               {/* Incidents List - Only show if expanded and has incidents */}
               {isExpanded && totalCount > 0 && (

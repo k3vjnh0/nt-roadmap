@@ -1,6 +1,7 @@
-import { create } from 'zustand';
-import { Incident, FilterOptions, Location, Route } from '../types';
-import { incidentService, routeService } from '../services/api';
+import { create } from 'zustand';\nimport { Incident, FilterOptions, Location, Route } from '../types';\nimport { incidentService, routeService } from '../services/api';\n\n// Debounce helper\nlet filterDebounceTimer: NodeJS.Timeout | null = null;
+
+// Debounce helper
+let filterDebounceTimer: NodeJS.Timeout | null = null;
 
 interface AppState {
   // Incidents
@@ -53,6 +54,7 @@ interface AppState {
   toggleIncidentType: (type: string) => void;
   isIncidentTypeVisible: (type: string) => boolean;
   focusOnIncident: (incident: Incident) => void;
+  debouncedApplyFilters: () => void;
 }
 
 // Default location: Darwin, NT
@@ -223,7 +225,21 @@ export const useAppStore = create<AppState>((set, get) => ({
       visibleTypes.add(type);
     }
     set({ visibleIncidentTypes: visibleTypes });
-    get().applyFilters();
+    get().debouncedApplyFilters();
+  },
+
+  debouncedApplyFilters: () => {
+    if (filterDebounceTimer) {
+      clearTimeout(filterDebounceTimer);
+    }
+    filterDebounceTimer = setTimeout(() => {
+      get().applyFilters();
+      // Optionally recalculate route if one exists
+      const { origin, destination, currentRoute } = get();
+      if (origin && destination && currentRoute) {
+        get().calculateRoute();
+      }
+    }, 250);
   },
 
   isIncidentTypeVisible: (type: string) => {

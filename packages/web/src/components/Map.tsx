@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { useAppStore } from '../store/appStore';
 import { Incident, IncidentType } from '../types';
 import { INCIDENT_COLORS, INCIDENT_LABELS } from '../utils/helpers';
+import { MapFilterButton } from './MapFilterButton';
 
 // Fix Leaflet default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -303,7 +304,12 @@ function MapComponent() {
     }
   }, [currentRoute, origin, destination, selectedAlternativeId]);
 
-  return <div ref={mapRef} className="w-full h-full" />;
+  return (
+    <div className="relative w-full h-full">
+      <div ref={mapRef} className="w-full h-full" />
+      <MapFilterButton />
+    </div>
+  );
 }
 
 function createIncidentMarker(incident: Incident, map: L.Map): L.Marker {
