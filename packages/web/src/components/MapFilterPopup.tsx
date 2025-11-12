@@ -112,13 +112,13 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       const isMobile = window.innerWidth < 768;
       if (isMobile) {
         setPosition({
-          x: window.innerWidth / 2 - 150, // Center (300px width / 2)
-          y: window.innerHeight - 500, // From bottom
+          x: 10,
+          y: window.innerHeight - 450,
         });
       } else {
         setPosition({
-          x: window.innerWidth - 320, // 20px from right
-          y: 20, // Top
+          x: window.innerWidth - 260,
+          y: 20,
         });
       }
     }
@@ -139,7 +139,7 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newX = Math.max(0, Math.min(window.innerWidth - 300, e.clientX - dragOffset.x));
+      const newX = Math.max(0, Math.min(window.innerWidth - 240, e.clientX - dragOffset.x));
       const newY = Math.max(0, Math.min(window.innerHeight - 300, e.clientY - dragOffset.y));
       setPosition({ x: newX, y: newY });
     };
@@ -209,8 +209,8 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: '300px',
-        maxHeight: 'min(85vh, 500px)',
+        width: '240px',
+        maxHeight: 'min(80vh, 420px)',
         zIndex: 10000,
         transform: isOpen ? 'scale(1)' : 'scale(0.95)',
         opacity: isOpen ? 1 : 0,
@@ -223,46 +223,46 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       {/* Header - Draggable */}
       <div
         ref={dragHandleRef}
-        className={`flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg ${
+        className={`flex items-center justify-between px-2 py-2 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >
         <h2
           id="filter-popup-title"
-          className="text-base font-bold text-gray-900 flex items-center gap-2"
+          className="text-sm font-bold text-gray-900 flex items-center gap-1.5"
         >
-          <Filter className="w-4 h-4 text-blue-600" />
+          <Filter className="w-3.5 h-3.5 text-blue-600" />
           Filters
         </h2>
         <button
           onClick={onClose}
-          className="p-1 hover:bg-white rounded-md transition-colors"
+          className="p-0.5 hover:bg-white rounded transition-colors"
           aria-label="Close filter popup"
         >
-          <X className="w-4 h-4 text-gray-500" />
+          <X className="w-3.5 h-3.5 text-gray-500" />
         </button>
       </div>
 
       {/* Quick Actions */}
-      <div className="p-2 border-b border-gray-100 bg-gray-50 flex gap-1">
+      <div className="px-2 py-1.5 border-b border-gray-100 bg-gray-50 flex gap-1">
         <button
           onClick={handleSelectAll}
           disabled={allSelected}
-          className="flex-1 px-2 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 px-1.5 py-1 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           All
         </button>
         <button
           onClick={handleClearAll}
           disabled={noneSelected}
-          className="flex-1 px-2 py-1.5 text-xs font-medium border border-gray-300 text-gray-700 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 px-1.5 py-1 text-xs font-medium border border-gray-300 text-gray-700 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           Clear
         </button>
       </div>
 
       {/* Content - Scrollable with compact incident list */}
-      <div className="overflow-y-auto" style={{ maxHeight: 'min(70vh, 400px)' }}>
+      <div className="overflow-y-auto" style={{ maxHeight: 'min(65vh, 320px)' }}>
         {Object.entries(INCIDENT_LABELS).map(([type, label]) => {
           const totalCount = allIncidentCounts[type] || 0;
           const visibleCount = visibleIncidentCounts[type] || 0;
@@ -270,26 +270,28 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
           const color = INCIDENT_COLORS[type as keyof typeof INCIDENT_COLORS];
           const isExpanded = expandedCategories[type];
 
-          if (totalCount === 0) return null;
-
           return (
-            <div key={type} className="border-b border-gray-100">
+            <div key={type} className="border-b border-gray-100 last:border-b-0">
               {/* Category Header */}
               <div className="flex items-center hover:bg-gray-50">
                 <button
                   onClick={() => toggleCategory(type)}
-                  className="flex items-center gap-2 flex-1 p-2 text-left"
+                  className="flex items-center gap-1.5 flex-1 p-1.5 text-left"
+                  disabled={totalCount === 0}
                 >
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                  {totalCount > 0 && (
+                    isExpanded ? (
+                      <ChevronUp className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                    )
                   )}
+                  {totalCount === 0 && <div className="w-3 h-3 flex-shrink-0" />}
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: color }}
                   >
-                    <span className="text-white text-sm">
+                    <span className="text-white text-xs">
                       {type === 'road_closure' && '⛔'}
                       {type === 'flood' && '🌊'}
                       {type === 'accident' && '🚗'}
@@ -302,28 +304,28 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xs font-bold text-gray-900">{label}</h3>
-                    <p className="text-xs text-gray-600">{visibleCount} visible</p>
+                    <h3 className="text-xs font-semibold text-gray-900 truncate">{label}</h3>
+                    <p className="text-[10px] text-gray-600">{visibleCount} visible</p>
                   </div>
                 </button>
                 {/* Toggle Switch */}
                 <button
                   onClick={() => handleToggle(type)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 mr-2 ${
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 mr-1.5 ${
                     isTypeVisible ? 'bg-blue-500' : 'bg-gray-300'
                   }`}
                   title={isTypeVisible ? 'Hide on map' : 'Show on map'}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
-                      isTypeVisible ? 'translate-x-6' : 'translate-x-1'
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                      isTypeVisible ? 'translate-x-4.5' : 'translate-x-0.5'
                     }`}
                   />
                 </button>
               </div>
 
               {/* Incidents List */}
-              {isExpanded && (
+              {isExpanded && totalCount > 0 && (
                 <div className="bg-gray-50">
                   {filteredIncidents
                     .filter(i => i.type === type)
@@ -334,14 +336,14 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
                           focusOnIncident(incident);
                           onClose();
                         }}
-                        className="w-full px-3 py-2 text-left hover:bg-white border-b border-gray-200 last:border-b-0 transition-colors"
+                        className="w-full px-2 py-1.5 text-left hover:bg-white border-b border-gray-200 last:border-b-0 transition-colors"
                       >
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-start gap-1.5">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-semibold text-gray-900 truncate">
+                            <h4 className="text-[11px] font-semibold text-gray-900 truncate leading-tight">
                               {incident.title || 'Untitled'}
                             </h4>
-                            <p className="text-xs text-gray-600 line-clamp-1">
+                            <p className="text-[10px] text-gray-600 line-clamp-1 leading-tight">
                               {incident.description || 'No description'}
                             </p>
                           </div>
@@ -356,8 +358,8 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       </div>
 
       {/* Footer */}
-      <div className="p-2 border-t border-gray-100 bg-gray-50 rounded-b-lg">
-        <p className="text-xs text-gray-500 text-center">
+      <div className="px-2 py-1.5 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+        <p className="text-[10px] text-gray-500 text-center">
           {visibleIncidentTypes.size}/{Object.keys(INCIDENT_LABELS).length} types • {filteredIncidents.length} incidents
         </p>
       </div>
