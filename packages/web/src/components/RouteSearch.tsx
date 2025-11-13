@@ -27,7 +27,7 @@ export function RouteSearch() {
   const [destinationInput, setDestinationInput] = useState('');
   const [originDisplay, setOriginDisplay] = useState('');
   const [destinationDisplay, setDestinationDisplay] = useState('');
-  const [showRoutePanel, setShowRoutePanel] = useState(false);
+  const [showRoutePanel, setShowRoutePanel] = useState(true);
   
   // Geocoding states
   const [isGeocodingOrigin, setIsGeocodingOrigin] = useState(false);

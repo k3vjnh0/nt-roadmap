@@ -157,23 +157,8 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
     };
   }, [isDragging, dragOffset]);
 
-  // Click outside to close
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-
-    // Delay to prevent immediate close on button click
-    setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
-
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, onClose]);
+  // Note: Removed click outside to close so filter stays open when dragging map
+  // User can close with X button or Esc key
 
   const handleSelectAll = () => {
     Object.keys(INCIDENT_LABELS).forEach((type) => {
