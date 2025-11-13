@@ -113,11 +113,11 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       if (isMobile) {
         setPosition({
           x: 10,
-          y: window.innerHeight - 450,
+          y: window.innerHeight - 480,
         });
       } else {
         setPosition({
-          x: window.innerWidth - 260,
+          x: window.innerWidth - 300,
           y: 20,
         });
       }
@@ -139,9 +139,12 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newX = Math.max(0, Math.min(window.innerWidth - 240, e.clientX - dragOffset.x));
-      const newY = Math.max(0, Math.min(window.innerHeight - 300, e.clientY - dragOffset.y));
-      setPosition({ x: newX, y: newY });
+      e.preventDefault();
+      requestAnimationFrame(() => {
+        const newX = Math.max(0, Math.min(window.innerWidth - 280, e.clientX - dragOffset.x));
+        const newY = Math.max(0, Math.min(window.innerHeight - 300, e.clientY - dragOffset.y));
+        setPosition({ x: newX, y: newY });
+      });
     };
 
     const handleMouseUp = () => {
@@ -188,17 +191,18 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
   return (
     <div
       ref={popupRef}
-      className={`fixed bg-white rounded-lg shadow-2xl border border-gray-200 transition-all duration-200 ${
+      className={`fixed bg-white rounded-lg shadow-2xl border border-gray-200 transition-all duration-200 select-none ${
         isDragging ? 'cursor-grabbing' : ''
       }`}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: '240px',
-        maxHeight: 'min(80vh, 420px)',
+        width: '280px',
+        maxHeight: 'min(80vh, 480px)',
         zIndex: 10000,
         transform: isOpen ? 'scale(1)' : 'scale(0.95)',
         opacity: isOpen ? 1 : 0,
+        willChange: isDragging ? 'transform' : 'auto',
       }}
       role="dialog"
       aria-modal="true"
@@ -247,7 +251,7 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
       </div>
 
       {/* Content - Scrollable with compact incident list */}
-      <div className="overflow-y-auto" style={{ maxHeight: 'min(65vh, 320px)' }}>
+      <div className="overflow-y-auto" style={{ maxHeight: 'min(65vh, 380px)' }}>
         {Object.entries(INCIDENT_LABELS).map(([type, label]) => {
           const totalCount = allIncidentCounts[type] || 0;
           const visibleCount = visibleIncidentCounts[type] || 0;
@@ -261,7 +265,7 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
               <div className="flex items-center hover:bg-gray-50">
                 <button
                   onClick={() => toggleCategory(type)}
-                  className="flex items-center gap-1.5 flex-1 p-1.5 text-left"
+                  className="flex items-center gap-2 flex-1 p-2 text-left"
                   disabled={totalCount === 0}
                 >
                   {totalCount > 0 && (
@@ -273,10 +277,10 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
                   )}
                   {totalCount === 0 && <div className="w-3 h-3 flex-shrink-0" />}
                   <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: color }}
                   >
-                    <span className="text-white text-xs">
+                    <span className="text-white text-sm">
                       {type === 'road_closure' && '⛔'}
                       {type === 'flood' && '🌊'}
                       {type === 'accident' && '🚗'}
@@ -289,8 +293,8 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xs font-semibold text-gray-900 truncate">{label}</h3>
-                    <p className="text-[10px] text-gray-600">{visibleCount} visible</p>
+                    <h3 className="text-sm font-semibold text-gray-900 truncate">{label}</h3>
+                    <p className="text-xs text-gray-600">{visibleCount} visible</p>
                   </div>
                 </button>
                 {/* Toggle Switch */}
@@ -325,10 +329,10 @@ export function MapFilterPopup({ isOpen, onClose }: MapFilterPopupProps) {
                       >
                         <div className="flex items-start gap-1.5">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-[11px] font-semibold text-gray-900 truncate leading-tight">
+                            <h4 className="text-xs font-semibold text-gray-900 truncate leading-tight">
                               {incident.title || 'Untitled'}
                             </h4>
-                            <p className="text-[10px] text-gray-600 line-clamp-1 leading-tight">
+                            <p className="text-[11px] text-gray-600 line-clamp-1 leading-tight">
                               {incident.description || 'No description'}
                             </p>
                           </div>
